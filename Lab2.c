@@ -1,6 +1,3 @@
-/* Compare folder1 with folder2 and if there is no same ones in
-folder2, then make it (include subfolders)*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,109 +8,104 @@ folder2, then make it (include subfolders)*/
 #include <time.h>
 #include <errno.h>
 #include <limits.h>
-#include <fcntl.h>
-#include <unistd.h>
 
-#define maxsize 65535
+#define maxbuf 256
 
-int CountProcesses;
-int MaxProcesses;
-int StartLooking(char *, char *);
-void WriteFile(char *, char *, struct stat);
+int FolderCount;
+int FileCount;
 
 
-int main(int argc, char *argv[])
-{
-	CountProcesses = 0;
-	MaxProcesses = *argv[3];
-	StartLooking(argv[1], argv[2]);
-}
-
-
-int StartLooking(char *folder1, char *folder2) {
+int StartLooking(char *folder, char *filename) {
 	DIR *cur;
 	struct dirent *el;
 
-	cur = opendir(folder1);
+	cur = opendir(folder);
 	//Open current folder
-	if (!(cur))
+	if (!(cur)) 
 	{
-		fprintf(stderr, "%s: %s\n", folder1, strerror(errno));
+		fprintf(stderr, "%s: %s\n", folder, strerror(errno));
 		return 1;
-	}
+	}	
 	//Read all element in current directory
 	while (NULL != (el = readdir(cur))) {
 
-		//Check if our elememt is not our or parent folder1
+		//Check if our elememt is not our or parent folder
 		if (0 != strcmp(".", el->d_name) && 0 != strcmp("..", el->d_name)) {
-
-			//Into the depths 
-			char *path1, *path2;
-			path1 = (char*)malloc(PATH_MAX);
-			path2 = (char*)malloc(PATH_MAX);
-			strcat(strcat(strcpy(path1, folder1), "/"), el->d_name);
-			strcat(strcat(strcpy(path2, folder2), "/"), el->d_name);
 
 			//Now check if file is a folder //S_ISDIR(x)
 			if (DT_DIR == el->d_type) {
-				DIR *dir2;
+				FolderCount++;				
 
-				//Check the folder in folder2 exists
-				if (NULL == (dir2 = opendir(path2))) {
-					//Permissions
-					struct stat st;
-					stat(path1, &st);
+				char *name;
+				name=(char*)malloc(PATH_MAX);
 
-					mkdir(path2, st.st_mode);
-				}
-				else
-					closedir(dir2);
+				strcpy(name,folder);
 
-				StartLooking(path1, path2);
+				StartLooking(strcat(strcat(name,"/"), el->d_name), filename);
+				free(name);
 			}
-			else if (DT_REG == el->d_type) {
+			else if (DT_REG == el->d_type){
+				FileCount++;
+				//printf("else\n");
+				//We found our buddy
+				if (0 == strcmp(filename, el->d_name)) {
+					char *name;
+					name=(char*)malloc(NAME_MAX);
 
+					strcpy(name,folder);
 
-				//Check The File not exists
-				if (-1 == access(path2, F_OK)) {
-
-					//Permissions
-					struct stat st;
-					stat(path1, &st);
-
-					WriteFile(path1, path2, st);
+					printf("!FOUND_FILE! %s/%s\n", folder, el->d_name);
+					Info(strcat(strcat(name,"/"), el->d_name));	
+					free(name);
 				}
 			}
-			free(path1);
-			free(path2);
 		}
 	}
 	closedir(cur);
 }
 
-void WriteFile(char *p1, char *p2, struct stat st)
+int Info (char *nameoffile)
 {
-	ssize_t nread;
-	char buf[maxsize];
-	int fd_from, fd_to;
+		
+	struct stat stat1;	
+	stat(nameoffile, &stat1);
+	
+	//date
+	struct tm *tm_ptr;
+	time_t Mytime;
+	char s1[40]={ 0 };
+	Mytime = stat1.st_ctime;
+	tm_ptr = gmtime(&Mytime);
+	strftime(s1, 80,"%d.%m.%Y %H:%M:%S ",tm_ptr);
 
-	fd_from = open(p1, O_RDONLY);
-	fd_to = open(p2, O_WRONLY | O_CREAT, st.st_mode);
-
-	while ((nread = read(fd_from, buf, sizeof(buf))) > 0) {
-		char *out = buf;
-		ssize_t nwrite;
-
-		do {
-			nwrite = write(fd_to, out, nread);
-
-			if (nwrite >= 0) {
-				nread -= nwrite;
-
-				out += nwrite;
-			}
-		} while (nread > 0);
-	}
-
+	printf("\tДата создания: %s \n\tРазмер: %ld байт \n\tПрава доступа: %o\n\tНомер дескриптора: %lu\n",s1,stat1.st_size,stat1.st_mode,stat1.st_ino);
+	printf("\n");
 }
 
+int main(int argc, char *argv[], char *envp[]) {
+
+	char folder[maxbuf], path[maxbuf];
+	printf("\n");
+
+	//Check for 2 input parameters
+	if (argc < 3) {
+		printf("Not enough actual parameters\n");
+		return 0;
+	}
+	else {
+		strcpy(folder, argv[1]);
+		DIR *dir;
+		if (NULL == (dir = opendir(folder))) {
+			printf("This folder doesn't exist\n");
+			return 0;
+		}
+		else {
+			printf("folder else\n");
+			closedir(dir);
+		}
+	}
+
+	StartLooking(argv[1], argv[2]);
+	printf("We looked %d folder and %d file except root folder\n", FolderCount, FileCount);
+	return 0;
+}
