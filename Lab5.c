@@ -1,3 +1,14 @@
+/*
+Write a program to synchronize two directories, for example, Dir1 and Dir2. 
+The user specifies the names Dir1 and Dir2. As a result of the program, the files 
+that are available in Dir1 but not in Dir2 must be copied to Dir2 together with the access rights. 
+Copy procedures should run in a separate thread for each file being copied. 
+Each thread displays its id, the full path to the file being copied, and the number of bytes copied. 
+The number of concurrent streams N (input by user). 
+Copy multiple files from the /etc directory to your home directory. 
+Check the program for the /etc directory and the home directory.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
