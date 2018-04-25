@@ -56,11 +56,13 @@ void send (int dest, int sign)
 void showmess (int sig)
 {
 	isfinished++;
+	usleep(1000);
 	printf("-->>> %d process %d - pid, %d - ppid, get signal =%d=, time %ld\n", i, getpid(), getppid(), sig, clock());
 }
 void my_handler1 (int sig)
 {
 	printf("\n\nnext cicle\n");
+	usleep(100000);
 	showmess(sig);	
 	send(2, SIGUSR1);		
 }
@@ -160,7 +162,11 @@ int main ()
 				}
 			}
 		}
-		if (i == 8) 
+		if (i < 8)
+		{
+			usleep(10000);
+		}
+		else
 		{
 			printf("\n");
 		}
@@ -176,6 +182,8 @@ int main ()
 		printf("pid of %d is %d\n", i, getpid());
 		setpgid(getpid(), arrpid[i]);
 	
+		usleep(100000);
+
 		if (i == 1) {signal (SIGUSR1, my_handler1);signal (SIGUSR2, my_handler1);}
 		if (i == 2) {signal (SIGUSR1, my_handler2);signal (SIGUSR2, my_handler2); signal (MYSIGSTOP, my_handler8);}
 		if (i == 3) {signal (SIGUSR1, my_handler3);signal (SIGUSR2, my_handler3); signal (MYSIGSTOP, my_handler8);}
@@ -193,6 +201,7 @@ int main ()
 			printf("///\n"); 
 			//isfinished--;
 			printf("cool sinal\n");
+			usleep(9000);
 			printf("Send signal to 2 %d\n", getpid());
 			send (2, SIGUSR1);
 		}
@@ -212,9 +221,11 @@ int main ()
 			printf("The main proc is waiting...\n");		
 			for (int j = 8; j>=2; j--)
 			{	
-				send(j, MYSIGSTOP); 		
+				send(j, MYSIGSTOP); 
+				usleep(1000);
 				kill(arrpid[j], SIGKILL);
 			}
+			usleep(1000);
 			exit;
 		}
 		else
