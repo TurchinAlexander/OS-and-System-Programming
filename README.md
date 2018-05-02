@@ -63,5 +63,5 @@ Lab8:
   Write a program to find the array of function values y[i]=sin(2 &times; PI &times; i / *N*) (i = 0,1,2...*N*-1) using Taylor series.  
   The program is split in 3 processes.  
   1 process: counting *n* Taylor series members of sin and transfer them to 2 process.  
-  2 process: summation of Taylor series members for a particular sin and transfer result to 3 process.  
+  2 process: summation of Taylor series members of a particular sin and transfer the result to 3 process.  
   3 process: write results of calculations in a file.
