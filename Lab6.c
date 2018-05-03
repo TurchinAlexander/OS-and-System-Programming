@@ -68,7 +68,7 @@ void CopyFile(char *source, char *dest, int process_count)
 	
 	sem_init(&sem_name, 1, 1);
 	
-	for(int i = 0; i < process_count; i++) {
+	for(int i = 1; i <= process_count; i++) {
 		pid = fork();
 		if (0 == pid) {
 			CopyPart(source, dest_fd, statbuf.st_blksize, part_offset, i != process_count ? part_size : (statbuf.st_size - part_offset));
